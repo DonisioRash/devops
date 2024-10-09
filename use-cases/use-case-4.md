@@ -32,6 +32,7 @@ HR Advisor.
 
 ### Trigger
 
+
 A request for finance information is sent to HR.
 
 ## MAIN SUCCESS SCENARIO
