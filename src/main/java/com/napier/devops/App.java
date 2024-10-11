@@ -8,19 +8,20 @@ public class App
     public static void main(String[] args)
     {
         // Create new Application
-        App a = new App();
+        App app = new App();
 
         // Connect to database
-        a.connect();
+        app.connect();
 
-        // Extract employee salary information
-        ArrayList<Employee> employees = a.getAllSalaries();
+        // Get salaries by role
+        String title = "Engineer";  // Example: specify the role here
+        ArrayList<Employee> employees = app.getSalariesByRole(title);
 
-        // Test the size of the returned data - should be 240124
-        System.out.println(employees.size());
+        // Display results
+        app.printSalaries(employees); // Using printSalaries to display the employee list with salaries
 
         // Disconnect from database
-        a.disconnect();
+        app.disconnect();
     }
 
     /**
@@ -88,25 +89,32 @@ public class App
     }
 
     /**
-     * Gets all the current employees and salaries.
-     * @return A list of all employees and salaries, or null if there is an error.
+     * Gets all the current employees and their salaries by role (title).
+     * @param title The role to filter by.
+     * @return A list of employees filtered by role, or null if there is an error.
      */
-    public ArrayList<Employee> getAllSalaries()
+    public ArrayList<Employee> getSalariesByRole(String title)
     {
         try
         {
             // Create an SQL statement
             Statement stmt = con.createStatement();
-            // Create string for SQL statement
+            // Create string for SQL statement to filter by role (title)
             String strSelect =
                     "SELECT employees.emp_no, employees.first_name, employees.last_name, salaries.salary "
-                            + "FROM employees, salaries "
-                            + "WHERE employees.emp_no = salaries.emp_no AND salaries.to_date = '9999-01-01' "
+                            + "FROM employees, salaries, titles "
+                            + "WHERE employees.emp_no = salaries.emp_no "
+                            + "AND employees.emp_no = titles.emp_no "
+                            + "AND salaries.to_date = '9999-01-01' "
+                            + "AND titles.to_date = '9999-01-01' "
+                            + "AND titles.title = '" + title + "' "
                             + "ORDER BY employees.emp_no ASC";
+
             // Execute SQL statement
             ResultSet rset = stmt.executeQuery(strSelect);
+
             // Extract employee information
-            ArrayList<Employee> employees = new ArrayList<Employee>();
+            ArrayList<Employee> employees = new ArrayList<>();
             while (rset.next())
             {
                 Employee emp = new Employee();
@@ -121,23 +129,29 @@ public class App
         catch (Exception e)
         {
             System.out.println(e.getMessage());
-            System.out.println("Failed to get salary details");
+            System.out.println("Failed to get salary details by role");
             return null;
         }
     }
 
     /**
-     * Display Salaries by Role
+     * Prints a list of employees and their salaries.
+     * @param employees The list of employees to print.
      */
-    public void displaySalariesByRole(ArrayList<Employee> employees)
+    public void printSalaries(ArrayList<Employee> employees)
     {
+        // Check if employees list is not empty
         if (!employees.isEmpty())
         {
+            // Print header
+            System.out.println(String.format("%-10s %-15s %-20s %-8s", "Emp No", "First Name", "Last Name", "Salary"));
+
+            // Loop over all employees in the list and print their details
             for (Employee emp : employees)
             {
-                System.out.println(
-                        emp.emp_no + " " + emp.first_name + " " + emp.last_name + " - Salary: " + emp.salary
-                );
+                String emp_string = String.format("%-10s %-15s %-20s %-8s",
+                        emp.emp_no, emp.first_name, emp.last_name, emp.salary);
+                System.out.println(emp_string);
             }
         }
         else
